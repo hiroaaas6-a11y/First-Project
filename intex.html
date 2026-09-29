@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIRST PROJECT | Игровой Портал</title>
+    <style>
+        :root {
+            --bg-main: #060913;
+            --bg-card: #0d1527;
+            --bg-sidebar: #090e1a;
+            --primary: #00bbff; 
+            --primary-glow: rgba(0, 187, 255, 0.4);
+            --text-main: #8fa0c2;
+            --text-bright: #ffffff;
+            --border-color: #16223f;
+            --font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        
+        body { 
+            background-color: var(--bg-main); 
+            color: var(--text-main); 
+            font-family: var(--font-family); 
+            display: flex; 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+            background-image: radial-gradient(circle at 70% 20%, #0f1c3f 0%, var(--bg-main) 70%); 
+        }
+
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(0, 255, 136, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+
+        .sidebar { 
+            width: 260px; 
+            background: var(--bg-sidebar); 
+            border-right: 1px solid var(--border-color); 
+            display: flex; 
+            flex-direction: column; 
+            padding: 40px 24px; 
+            position: fixed; 
+            height: 100vh; 
+            z-index: 100; 
+        }
+
+        .logo { 
+            font-size: 24px; 
+            font-weight: 900; 
+            color: var(--text-bright); 
+            letter-spacing: 2px; 
+            margin-bottom: 50px; 
+            text-transform: uppercase; 
+        }
+        .logo span { color: var(--primary); text-shadow: 0 0 15px var(--primary-glow); }
+
+        .menu-list { display: flex; flex-direction: column; gap: 28px; list-style: none; }
+
+        .menu-btn { 
+            width: 100%; 
+            background: transparent; 
+            border: 1px solid transparent; 
+            color: var(--text-main); 
+            padding: 14px 20px; 
+            text-align: left; 
+            font-size: 14px; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+
+        .menu-btn:hover, .menu-btn.active { 
+            color: var(--text-bright); 
+            background: rgba(0, 187, 255, 0.06); 
+            border-color: rgba(0, 187, 255, 0.2); 
+            text-shadow: 0 0 8px var(--primary-glow); 
+            box-shadow: 0 0 20px rgba(0, 187, 255, 0.08); 
+        }
+        .menu-btn.active { border-left: 4px solid var(--primary); padding-left: 16px; }
+
+        .main-content { margin-left: 260px; flex: 1; padding: 40px 4%; min-width: 0; position: relative; }
+    </style>
+</head>
+   <style>
+        .top-bar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 40px; background: var(--bg-card); padding: 18px 30px; 
+            border-radius: 12px; border: 1px solid var(--border-color); 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-steam { 
+            background: rgba(0, 187, 255, 0.08); color: var(--primary); 
+            border: 1px solid var(--primary); padding: 12px 24px; font-weight: bold; 
+            border-radius: 6px; cursor: pointer; text-transform: uppercase; font-size: 13px; 
+            transition: all 0.3s ease; box-shadow: 0 0 12px var(--primary-glow); 
+        }
+        .btn-steam:hover { background: var(--primary); color: #000; box-shadow: 0 0 25px var(--primary); }
+
+        .page { display: none; width: 100%; opacity: 0; }
+        .page.active { display: block; opacity: 1; animation: pageFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .section-title { font-size: 18px; color: #fff; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+
+        .modes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; transition: opacity 0.3s ease; }
+        
+        .mode-card { 
+            background: var(--bg-card); border: 1px solid var(--border-color); 
+            border-radius: 12px; height: 350px; position: relative; overflow: hidden; 
+            cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; 
+            padding: 30px 24px; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
+        }
+        .mode-card::before { 
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background-size: cover; background-position: center top; opacity: 0.22; 
+            transition: all 0.5s ease; mix-blend-mode: luminosity; z-index: 1; 
+        }
+
+        .mode-public::before { background-image: linear-gradient(to bottom, transparent, #0d1527), url('https://unsplash.com'); }
+        .mode-awp::before { background-image: linear-gradient(to bottom, transparent, #0d1527), url('https://unsplash.com'); }
+        .mode-maniac::before { background-image: linear-gradient(to bottom, transparent, #0d1527), url('https://unsplash.com'); }
+        .mode-fun::before { background-image: linear-gradient(to bottom, transparent, #0d1527), url('https://unsplash.com'); }
+        .mode-jail::before { background-image: linear-gradient(to bottom, transparent, #0d1527), url('https://unsplash.com'); }
+        .mode-deathrun::before { background-image: linear-gradient(to bottom, transparent, #0d1527), url('https://unsplash.com'); }
+        .mode-duels::before { background-image: linear-gradient(to bottom, transparent, #0d1527), url('https://unsplash.com'); }
+
+        .mode-card:hover { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 30px var(--primary-glow); 
+            transform: translateY(-6px); 
+        }
+        .mode-card:hover::before { opacity: 0.45; transform: scale(1.04); }
+
+        .mode-info { position: relative; z-index: 2; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
+        .mode-name { color: #fff; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .mode-online { font-size: 13px; color: #00ff88; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+        .mode-online::before { content: ''; display: inline-block; width: 7px; height: 7px; background: #00ff88; border-radius: 50%; animation: pulse 2s infinite; }
+
+        .servers-container { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .servers-container.active { display: block; opacity: 1; }
+        
+        .server-row { 
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; 
+            padding: 22px 35px; display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 16px; transition: all 0.3s ease; 
+        }
+        .server-row:hover { border-color: rgba(0, 187, 255, 0.4); box-shadow: 0 4px 15px rgba(0,187,255,0.05); }
+        .server-ip-click { font-family: monospace; color: var(--primary); background: rgba(0,0,0,0.2); padding: 6px 12px; border-radius: 4px; border: 1px dashed rgba(0,187,255,0.2); cursor: pointer; font-size: 14px; margin-top: 6px; display: inline-block; }
+
+        .notification-toast { position: fixed; bottom: 30px; right: -400px; background: var(--bg-sidebar); border-left: 4px solid var(--primary); padding: 18px 28px; border-radius: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 10000; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #fff; font-size: 14px; font-weight: bold; }
+        .notification-toast.show { right: 20px; }
+    </style>
+</head>
+<body>
+    <div id="toast" class="notification-toast">Уведомление</div>
+    <div class="sidebar">
+        <div class="logo">First<span>Project</span></div>
+        <ul class="menu-list">
+            <li><button class="menu-btn active" onclick="switchPage('main', this)">Главная</button></li>
+            <li><button class="menu-btn" onclick="switchPage('shop', this)">Магазин</button></li>
+            <li><button class="menu-btn" onclick="switchPage('clans', this)">Кланы</button></li>
+            <li><button class="menu-btn" onclick="switchPage('rules', this)">Правила</button></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div style="color:#fff; font-weight:bold; letter-spacing: 1px; text-transform: uppercase; font-size:14px;">Киберспортивный портал</div>
+            <div id="steamArea"><button class="btn-steam" onclick="openSteamModal()">Войти через Steam</button></div>
+        </div>
+
+        <div id="page-main" class="page active">
+            <div id="modesSelector" class="modes-grid">
+                <div class="mode-card mode-public" onclick="openMode()"><div class="mode-info"><div class="mode-name">Public</div><div class="mode-online">132 игрока</div></div></div>
+                <div class="mode-card mode-awp" onclick="showToast('ℹ️ Данные серверы настраиваются тех. администрацией')"><div class="mode-info"><div class="mode-name">Awp</div><div class="mode-online">43 игрока</div></div></div>
+                <div class="mode-card mode-maniac" onclick="showToast('ℹ️ Данные серверы настраиваются тех. администрацией')"><div class="mode-info"><div class="mode-name">Maniac</div><div class="mode-online">3 игрока</div></div></div>
+                <div class="mode-card mode-fun" onclick="showToast('ℹ️ Данные серверы настраиваются тех. администрацией')"><div class="mode-info"><div class="mode-name">Fun</div><div class="mode-online">107 игроков</div></div></div>
+                <div class="mode-card mode-jail" onclick="showToast('ℹ️ Данные серверы настраиваются тех. администрацией')"><div class="mode-info"><div class="mode-name">Jail</div><div class="mode-online">1 игрок</div></div></div>
+                <div class="mode-card mode-deathrun" onclick="showToast('ℹ️ Данные серверы настраиваются тех. администрацией')"><div class="mode-info"><div class="mode-name">Deathrun</div><div class="mode-online">0 игроков</div></div></div>
+                <div class="mode-card mode-duels" onclick="showToast('ℹ️ Данные серверы настраиваются тех. администрацией')"><div class="mode-info"><div class="mode-name">Duels</div><div class="mode-online">0 игроков</div></div></div>
+                <div class="mode-card" style="cursor:default; background:rgba(0,0,0,0.4); border-style: dashed;"><div class="mode-info" style="opacity:0.3;"><div class="mode-name">Скоро</div></div></div>
+            </div>
+
+            <div id="servers-public" class="servers-container">
+                <button class="btn-steam" style="margin-bottom:25px; background: transparent; border-color: #2c3a5e;" onclick="closeMode()">⬅ Назад к режимам</button>
+                <div class="server-row"><div><h4 style="color:#fff; font-size:15px; letter-spacing:0.5px;">FIRST PROJECT | МИРАЖ ПАБЛИК</h4><p class="server-ip-click" onclick="copyIP('46.174.52.26:27015')">46.174.52.26:27015</p></div><div style="color:#fff; font-weight:bold; font-size:14px;">de_mirage</div><div style="color:#00ff88; font-weight:bold;">14 / 24</div></div>
+                <div class="server-row"><div><h4 style="color:#fff; font-size:15px; letter-spacing:0.5px;">FIRST PROJECT | ДАСТ ПАБЛИК</h4><p class="server-ip-click" onclick="copyIP('46.174.52.26:27016')">46.174.52.26:27016</p></div><div style="color:#fff; font-weight:bold; font-size:14px;">de_dust2</div><div style="color:#00ff88; font-weight:bold;">4 / 24</div></div>
+                <div class="server-row"><div><h4 style="color:#fff; font-size:15px; letter-spacing:0.5px;">FIRST PROJECT | МИРАЖ ФПС ЛАЙМ</h4><p class="server-ip-click" onclick="copyIP('46.174.52.26:27017')">46.174.52.26:27017</p></div><div style="color:#fff; font-weight:bold;">de_mirage_fps</div><div style="color:var(--text-main);">0 / 24</div></div>
+            </div>
+        </div>
+        <style>
+            .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; }
+            .item-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px 20px; text-align: center; transition: 0.3s; }
+            .item-card:hover { border-color: var(--primary); box-shadow: 0 0 20px rgba(0,187,255,0.1); }
+            .custom-table { width: 100%; border-collapse: collapse; background: var(--bg-card); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
+            .custom-table th, .custom-table td { padding: 15px 20px; text-align: left; border-bottom: 1px solid var(--border-color); }
+            .custom-table th { background: rgba(0,0,0,0.3); color: #fff; text-transform: uppercase; font-size: 12px; }
+            
+            .admin-flex { display: flex; gap: 24px; margin-bottom: 35px; flex-wrap: wrap; width: 100%; }
+            
+            /* КАРТОЧКИ С ПОСТОЯННЫМ МЯГКИМ НЕОНОВО-ГОЛУБЫМ СВЕЧЕНИЕМ КРУГОМ */
+            .admin-card { 
+                background: var(--bg-card); 
+                border: 1px solid var(--primary); 
+                padding: 25px; 
+                text-align: center; 
+                flex: 1; 
+                min-width: 220px; 
+                border-radius: 12px; 
+                box-shadow: 0 0 15px rgba(0, 187, 255, 0.25); 
+                transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            }
+            /* Усиление эффекта голубого свечения при наведении */
+            .admin-card:hover {
+                box-shadow: 0 0 25px rgba(0, 187, 255, 0.5);
+                transform: translateY(-4px);
+            }
+
+            .admin-card h4 { color: #fff; font-size: 19px; font-weight: bold; }
+            .admin-role { font-size: 11px; text-transform: uppercase; font-weight: 700; padding: 5px 14px; border-radius: 20px; display: inline-block; margin-top: 10px; }
+            .role-s1mtry { background: rgba(0, 136, 255, 0.1); color: #0088ff; border: 1px solid #0088ff; }
+            .role-solonik { background: rgba(255, 153, 0, 0.1); color: #ff9900; border: 1px solid #ff9900; }
+            .role-wiki { background: rgba(0, 255, 204, 0.1); color: #00ffcc; border: 1px solid #00ffcc; }
+            
+            .steam-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(4,6,12,0.92); display: flex; justify-content: center; align-items: center; z-index: 99999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+            .steam-modal.active { opacity: 1; pointer-events: auto; }
+            .steam-modal-content { background: #171a21; width: 420px; padding: 35px; border-radius: 12px; text-align: center; border: 1px solid #3b3c3d; box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
+        </style>
+
+        <!-- МАГАЗИН ДОНАТА -->
+        <div id="page-shop" class="page">
+            <div class="section-title">Магазин privileges</div>
+            <div class="cards-grid">
+                <div class="item-card"><h3 style="color:#fff; font-size:18px;">VIP СТАТУС</h3><div style="font-size:26px; color:var(--primary); margin:18px 0; font-weight:bold;">149 ₽ <span style="font-size:12px; color:var(--text-main); font-weight:normal;">/ мес</span></div><button class="btn-steam" style="width:100%;" onclick="showToast('🛒 Магазин настраивается руководством')">Купить доступ</button></div>
+                <div class="item-card" style="border-color:var(--primary); box-shadow: 0 0 15px rgba(0,187,255,0.05);"><h3 style="color:var(--primary); font-size:18px;">SUPER-VIP УСЛУГА</h3><div style="font-size:26px; color:var(--primary); margin:18px 0; font-weight:bold;">299 ₽ <span style="font-size:12px; color:var(--text-main); font-weight:normal;">/ мес</span><br><span style="color:#fff; font-size:14px; display:block; margin-top:6px; letter-spacing:0.5px;">450 ₽ НАВСЕГДА</span></div><button class="btn-steam" style="background:var(--primary); color:#000; width:100%;" onclick="showToast('🛒 Магазин настраивается руководством')">Приобресить SUPER-VIP</button></div>
+            </div>
+        </div>
+
+        <!-- КЛАНОВАЯ СИСТЕМА -->
+        <div id="page-clans" class="page">
+            <div class="section-title">Клановый рейтинг проекта</div>
+            <table class="custom-table">
+                <thead><tr style="color:#fff; background:rgba(0,0,0,0.25);"><th>Место</th><th>Название Клана</th><th>Тег команды</th><th>Очки рейтинга</th></tr></thead>
+                <tbody>
+                    <tr><td>🏆 1</td><td style="color:#fff; font-weight:bold;">LEGACY ELITE</td><td style="color:var(--primary); font-weight:bold;">[LEET]</td><td>24,500</td></tr>
+                    <tr><td>🥈 2</td><td style="color:#fff; font-weight:bold;">FEAR MONSTERS</td><td style="color:#ff0055; font-weight:bold;">[FEAR]</td><td>18,900</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ПРАВИЛА И АДМИНИСТРАЦИЯ С ГОЛУБЫМ СВЕЧЕНИЕМ -->
+        <div id="page-rules" class="page">
+            <div class="section-title">Высший состав администрации</div>
+            <div class="admin-flex">
+                <div class="admin-card">
+                    <h4>s1mtry</h4>
+                    <span class="admin-role role-s1mtry">Основатель</span>
+                </div>
+                <div class="admin-card">
+                    <h4>SOLONIK</h4>
+                    <span class="admin-role role-solonik">Высший Админ</span>
+                </div>
+                <div class="admin-card">
+                    <h4>wiki</h4>
+                    <span class="admin-role role-wiki">Тех. админ</span>
+                </div>
+            </div>
+            
+            <div class="section-title">Свод внутренних правил</div>
+            <table class="custom-table">
+                <thead><tr style="color:#fff; background:rgba(0,0,0,0.25);"><th>Пункт</th><th>Описание нарушения правил проекта</th><th>Наказание</th></tr></thead>
+                <tbody>
+                    <tr><td>1.1</td><td>Использование читов, макросов и любого софта (AIM, WH, Трейсеры)</td><td>БАН НАВСЕГДА</td></tr>
+                    <tr><td>1.2</td><td>Обход выданного ранее бана или мута (через VPN или вторые аккаунты)</td><td>ПЕРМАНЕНТНЫЙ БАН</td></tr>
+                    <tr><td>1.3</td><td>Оскорбление, клевета или токсичность в адрес s1mtry, SOLONIK, wiki</td><td>БАН НАВСЕГДА</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ОКНО STEAM -->
+    <div class="steam-modal" id="steamModal">
+        <div class="steam-modal-content">
+            <h3 style="color:#fff; margin-bottom: 12px; letter-spacing:0.5px;">STEAM АВТОРИЗАЦИЯ</h3>
+            <p style="color:var(--text-main); font-size: 14px; margin-bottom: 25px; line-height:1.5;">Авторизуйтесь для синхронизации вашего уникального SteamID с магазином услуг.</p>
+            <button class="btn-steam" style="width:100%;" onclick="confirmLogin()">Безопасный вход</button>
+            <button class="btn-steam" style="background:transparent; border-color:#2c3a5e; margin-top:12px; width:100%; color:#fff;" onclick="closeSteamModal()">Отмена</button>
+        </div>
+    </div>
+
+    <script>
+        function switchPage(pageId, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            btn.classList.add('active');
+            if (pageId !== 'main') { closeMode(); }
+        }
+        
+        function openMode() {
+            document.getElementById('modesSelector').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('modesSelector').style.display = 'none';
+                const container = document.getElementById('servers-public');
+                container.style.display = 'block';
+                setTimeout(() => { container.classList.add('active'); }, 20);
+            }, 200);
+        }
+
+        function closeMode() {
+            const container = document.getElementById('servers-public');
+            container.classList.remove('active');
+            setTimeout(() => {
+                container.style.display = 'none';
+                document.getElementById('modesSelector').style.display = 'grid';
+                setTimeout(() => { document.getElementById('modesSelector').style.opacity = '1'; }, 20);
+            }, 200);
+        }
+
+        function showToast(text) {
+            const toast = document.getElementById('toast');
+            toast.innerText = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function copyIP(ip) {
+            navigator.clipboard.writeText(ip).then(() => {
+                showToast("⚡ IP-адрес скопирован в буфер обмена!");
+            });
+        }
+
+        function openSteamModal() { document.getElementById('steamModal').classList.add('active'); }
+        function closeSteamModal() { document.getElementById('steamModal').classList.remove('active'); }
+
+        function confirmLogin() {
+            closeSteamModal();
+            document.getElementById('steamArea').innerHTML = `<span style="color:#00ff88; font-weight:bold; font-size:13px; border:1px solid rgba(0,255,136,0.3); padding:10px 20px; border-radius:6px; background:rgba(0,255,136,0.03); letter-spacing:0.5px; text-transform:uppercase;">Steam Синхронизирован</span>`;
+            showToast("🟢 Вы успешно авторизовались через Steam!");
+        }
+    </script>
+</body>
+</html>
